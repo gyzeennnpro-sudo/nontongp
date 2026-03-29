@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NontonGP</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 30px;
+    background: #020617;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+    font-weight: 600;
+}
+
+.status {
+    text-align: center;
+    font-size: 12px;
+    color: #22c55e;
+    background-color: #105328;
+    border-radius: 20px;
+    padding: 8px 12px;
+    border: 1px solid #22c55e;
+}
+
+/* MAIN */
+.container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.player-stack {
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* VIDEO */
+.video-box {
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    max-height: 60vh;
+}
+
+/* RESOLUTION PANEL */
+.resolution-panel {
+    margin-top: 12px;
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.res-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.res-help {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* BUTTONS */
+.controls {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    flex-wrap: wrap; /* penting biar responsive */
+}
+
+.quality-btn {
+    min-width: 72px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 2px solid #3b4252;
+    background: #2a3342;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.quality-btn:hover {
+    background: #374151;
+}
+
+.quality-btn.active {
+    background: #103664;
+    color: #60a5fa;
+    border-color: #60a5fa;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* TABLET */
+@media (max-width: 768px) {
+
+    .navbar {
+        padding: 14px 16px;
+    }
+
+    .logo {
+        font-size: 14px;
+    }
+
+    .status {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .controls {
+        gap: 8px;
+    }
+
+    .quality-btn {
+        font-size: 13px;
+        padding: 7px 12px;
+        flex: 1 1 auto;
+    }
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+
+    .container {
+        padding: 10px;
+    }
+
+    .video-box {
+        border-radius: 10px;
+    }
+
+    .resolution-panel {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .res-title {
+        font-size: 13px;
+    }
+
+    .res-help {
+        font-size: 11px;
+    }
+
+    .controls {
+        justify-content: center;
+    }
+
+    .quality-btn {
+        flex: 1 1 40%; /* jadi 2 kolom */
+        text-align: center;
+    }
+
+    .footer {
+        font-size: 11px;
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">NontonGP</div>
+    <div class="status">● Live</div>
+</div>
+
+<div class="container">
+    <div class="player-stack">
+        <div class="video-box">
+            <video id="video" controls autoplay></video>
+        </div>
+
+        <div class="resolution-panel">
+            <div class="res-title">resolution</div>
+            <div class="controls" id="qualityContainer"></div>
+            <div class="res-help">Resolution of the generated video</div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    © 2026 NontonGP • Secure Streaming • By Alfari
+</div>
+
+<script>
+const video = document.getElementById('video');
+const container = document.getElementById('qualityContainer');
+
+const qualities = [
+    { label: "160p", url: "LINK_160P" },
+    { label: "360p", url: "LINK_360P" },
+    { label: "480p", url: "LINK_480P" },
+    { label: "720p", url: "LINK_720P" },
+    { label: "1080p", url: "LINK_1080P" }
+];
+
+let hls;
+
+function loadStream(url) {
+    if (hls) hls.destroy();
+
+    if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        video.play();
+    } else {
+        video.src = url;
+        video.play();
+    }
+}
+
+qualities.forEach((q) => {
+    const btn = document.createElement("button");
+    btn.innerText = q.label;
+    btn.className = "quality-btn";
+
+    btn.onclick = () => {
+        loadStream(q.url);
+
+        document.querySelectorAll('.quality-btn')
+            .forEach(b => b.classList.remove('active'));
+
+        btn.classList.add('active');
+    };
+
+    container.appendChild(btn);
+
+    if (q.label === "720p") {
+        btn.click();
+    }
+});
+</script>
+
+</body>
+</html>
